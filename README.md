@@ -430,6 +430,4 @@ Backend desarrollado con FastAPI, SQLAlchemy y SQLite para la gestión de usuari
 ## Notas
 
 - Si necesitas borrar todos los usuarios, puedes usar el endpoint DELETE `/usuarios/todos`.
-- Para eliminar la tabla de usuarios completamente, usa DELETE `/usuarios/drop-table` (requiere token).
-
----
+- Para eliminar la tabla de usuarios completamente, usa DELETE `/usuarios/drop-table` (requiere token)
