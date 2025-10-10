@@ -36,4 +36,4 @@ htmlcov/
 .ipynb_checkpoints/
 
 # Sensitive files
-*.env
+.env
