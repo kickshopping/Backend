@@ -1,0 +1,106 @@
+.login-container {
+    background: #111; /* Fondo negro */
+    padding: 2rem;
+    border-radius: 10px; /* Bordes redondeados */
+    width: 100%;
+    max-width: 350px; /* No más ancho que esto */
+    text-align: center;
+    color: #fff; /* Texto blanco */
+    margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+}
+
+/* Título del login */
+.login-title {
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+}
+
+/* Contenedor de cada input con su icono */
+.input-box {
+    position: relative; /* Necesario para posicionar el icono dentro */
+    margin-bottom: 1rem;
+}
+
+/* Estilo de los campos de texto */
+.input-box input {
+    width: 100%;
+    padding: 10px 40px 10px 10px; /* Espacio para el icono a la derecha */
+    background: none; /* Sin fondo */
+    border: none; /* Quita los bordes */
+    border-bottom: 1px solid #555; /* Línea inferior gris */
+    color: #fff;
+    font-size: 1rem;
+    outline: none; /* Quita el borde azul al enfocar */
+}
+
+/* Icono dentro del input */
+.input-box i {
+    position: absolute;
+    right: 10px; /* Separado del borde derecho */
+    top: 50%;
+    transform: translateY(-50%); /* Centrado vertical */
+    color: #aaa;
+    font-size: 1.2rem;
+}
+
+/* Efecto al enfocar el input */
+.input-box input:focus {
+    border-bottom: 1px solid #fff; /* Línea blanca al escribir */
+}
+
+/* Opciones (Remember Me y Forgot Password) */
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Link de Forgot Password */
+.options a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+/* Botón de Login */
+.btn {
+    width: 100%;
+    padding: 10px;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Texto de registro */
+.register-text {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+/* Link de registro */
+.register-text a {
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Adaptación para pantallas pequeñas */
+@media (max-width: 600px) {
+    .login-container {
+        padding: 1.2rem;
+        max-width: 95vw;
+        border-radius: 6px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
