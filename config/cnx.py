@@ -1,26 +1,25 @@
-"""
-Archivo de configuración de la conexión a la base de datos.
-Define el engine y la sesión para SQLAlchemy usando SQLite por defecto.
-"""
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+from typing import Generator
 
-import os  # Importa el módulo para acceder a variables de entorno
-from sqlalchemy import create_engine  # Importa la función para crear el engine de SQLAlchemy
-from sqlalchemy.orm import sessionmaker  # Importa el constructor de sesiones
+from config import STRCNX
 
-# Obtiene la URL de la base de datos desde la variable de entorno o usa SQLite local por defecto
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kickshopping.db")
+if STRCNX is None:
+    raise ValueError("La conexion con la base de datos no esta configurada")
 
-# Crea el engine de SQLAlchemy para conectarse a la base de datos
-engine = create_engine(
-    DATABASE_URL,  # URL de la base de datos
-    connect_args={"check_same_thread": False}  # Argumento necesario para SQLite en modo multihilo
-)
+#Motor de la base de Datos
+engine = create_engine(STRCNX, echo=True)
 
-# Crea la clase SessionLocal para instanciar sesiones de base de datos
-SessionLocal = sessionmaker(
-    autocommit=False,  # No autocommit para mayor control
-    autoflush=False,   # No autoflush para evitar escrituras automáticas
-    bind=engine        # Asocia la sesión al engine creado
-)
+# Funcion de apertura de la sesion para poder obtener, guardar, eliminar y modificar datos
+SessionLocal = sessionmaker(bind=engine, autoflush=True)
 
-
+# Dependency para FastAPI
+def get_db() -> Generator[Session, None, None]:
+    """
+    Dependency que proporciona una sesión de base de datos para FastAPI
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
