@@ -36,4 +36,5 @@ htmlcov/
 .ipynb_checkpoints/
 
 # Sensitive files
-.env*
+.env**.db
+.env.local

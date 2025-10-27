@@ -60,6 +60,17 @@ else:
         hostport = f"{host}:{port}" if port else host
         STRCNX = f"{ENGINE}://{auth}{hostport}/{db}"
 
+# Normalizar rutas de Windows en URL de sqlite (evita backslashes que rompen la URL)
+if STRCNX and STRCNX.startswith('sqlite:///'):
+    # convertimos backslashes a slashes para formar una URL válida
+    try:
+        raw_path = STRCNX[len('sqlite:///'):]
+        normalized = raw_path.replace('\\', '/')
+        STRCNX = f"sqlite:///{normalized}"
+    except Exception:
+        # si algo sale mal, dejamos STRCNX como estaba
+        pass
+
 SQLALCHEMY_DATABASE_URI = STRCNX
 
 # Si no se definió STRCNX vía envs de dev/qa, preferir el kidkshopping.db local cuando exista
