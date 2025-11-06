@@ -8,17 +8,49 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def get_products_by_category(category: str):
+    """Obtener productos por categoría"""
+    db = None
+    try:
+        db = SessionLocal()
+        products = db.query(Product).filter(Product.category.ilike(f"%{category}%")).all()
+        logger.info(f"Se obtuvieron {len(products)} productos para la categoría {category}")
+        return products
+    except Exception as e:
+        logger.error(f"Error al obtener productos por categoría: {str(e)}")
+        raise
+    finally:
+        if db:
+            db.close()
+
 def get_all_products():
     """Obtener todos los productos"""
     db = None
     try:
         db = SessionLocal()
-        products = db.query(Product).all()
-        logger.info(f"Se obtuvieron {len(products)} productos exitosamente")
-        return products
+        try:
+            products = db.query(Product).all()
+            logger.info(f"Se obtuvieron {len(products)} productos exitosamente")
+            return products
+        except Exception as e:
+            logger.error(f"Error al ejecutar la consulta: {str(e)}")
+            # Intentar obtener productos sin la nueva columna
+            products = db.query(
+                Product.id,
+                Product.name,
+                Product.description,
+                Product.price,
+                Product.image_url,
+                Product.discount
+            ).all()
+            logger.info("Consulta alternativa exitosa")
+            return products
     except SQLAlchemyError as e:
         logger.error(f"Error de base de datos al obtener productos: {str(e)}")
-        raise SQLAlchemyError("Error al acceder a la base de datos")
+        raise SQLAlchemyError(f"Error al acceder a la base de datos: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error inesperado: {str(e)}")
+        raise Exception(f"Error inesperado: {str(e)}")
     finally:
         if db:
             db.close()
@@ -62,6 +94,7 @@ def create_product(product_data: ProductCreate):
             price=product_data.price,
             image_url=product_data.image_url,
             discount=product_data.discount,
+            category=product_data.category
         )
 
         db.add(product)

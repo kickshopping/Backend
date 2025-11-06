@@ -5,8 +5,8 @@ from datetime import datetime, date
 class UsuarioBase(BaseModel):
     usu_usuario: str
     usu_nombre_completo: str
-    usu_rol_id: int
-    birthdate: Optional[date] = Field(None, description="Fecha de nacimiento del usuario")  
+    tipo_usuario: str = Field(..., description="Tipo de usuario: 'Vendedor' o 'Comprador'")
+    birthdate: Optional[date] = Field(None, description="Fecha de nacimiento del usuario")
 
 
 class UsuarioCreate(UsuarioBase):
@@ -78,6 +78,7 @@ class LoginResponse(BaseModel):
     token_type: str
     user_id: int
     username: str
+    user_type: Optional[str] = None
 
     class Config:
         json_schema_extra = {

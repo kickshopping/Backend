@@ -8,6 +8,7 @@ class ProductBase(BaseModel):
     price: float = Field(..., gt=0, description="Precio del producto (mayor a 0)")
     image_url: Optional[str] = Field(None, description="URL de la imagen del producto")
     discount: float = Field(0.0, ge=0, le=100, description="Descuento del producto (0-100%)")
+    category: Optional[str] = Field(None, description="Categoría del producto (ej: hombre, mujer, ofertas)")
 
 
 class ProductCreate(ProductBase):
@@ -24,11 +25,12 @@ class ProductCreate(ProductBase):
 
 
 class ProductUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1)
-    description: Optional[str] = Field(None)
-    price: Optional[float] = Field(None, gt=0)
-    image_url: Optional[str] = Field(None)
-    discount: Optional[float] = Field(None, ge=0, le=100)
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    image_url: Optional[str] = None
+    discount: Optional[float] = None
+    category: Optional[str] = None
 
     class Config:
         json_schema_extra = {

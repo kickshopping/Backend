@@ -60,6 +60,8 @@ class ProductSimple(BaseModel):
     name: str
     price: float
     image_url: Optional[str] = None
+    description: Optional[str] = None
+    discount: Optional[float] = 0.0
 
     class Config:
         from_attributes = True
@@ -90,7 +92,9 @@ class CartItemOutDetailed(BaseModel):
                     "id": 1,
                     "name": "Nike Air Max",
                     "price": 150.99,
-                    "image_url": "https://example.com/nike-air-max.jpg"
+                    "image_url": "https://example.com/nike-air-max.jpg",
+                    "description": "Zapatillas deportivas premium",
+                    "discount": 0.0
                 }
             }
         }

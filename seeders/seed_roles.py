@@ -8,6 +8,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlite3 import IntegrityError
 from config.cnx import SessionLocal, engine
 from config.basemodel import Base
+# Importar modelo Permiso antes de Rol para evitar errores de registro de mapeos
+import permisos.model
 from roles.model import Rol
 from config.associations import rol_permiso_association
 import logging
@@ -31,27 +33,19 @@ def seed_roles():
     
     print("=== Iniciando carga de roles ===")
     
-    # Definir roles del sistema con nombres consistentes para el sistema de permisos
+    # Definir roles del sistema
     roles_data = [
         {
-            "rol_nombre": "Administrador", 
-            "rol_permisos": "all"
+            "rol_nombre": "Administrador",
+            "rol_permisos": "read,create,update,delete,manage_products,manage_users"
         },
         {
-            "rol_nombre": "Gerente", 
-            "rol_permisos": "manage"
+            "rol_nombre": "Vendedor", 
+            "rol_permisos": "read,create,update,sell"
         },
         {
-            "rol_nombre": "Empleado", 
-            "rol_permisos": "read,create"
-        },
-        {
-            "rol_nombre": "Cajero", 
-            "rol_permisos": "read,create,update"
-        },
-        {
-            "rol_nombre": "Cliente", 
-            "rol_permisos": "read,self"
+            "rol_nombre": "Comprador", 
+            "rol_permisos": "read,buy"
         }
     ]
     

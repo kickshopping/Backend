@@ -30,6 +30,8 @@ def seed_rol_permisos():
         permisos_dict = {}
         for p in permisos:
             permisos_dict[p.permiso_nombre] = p.permiso_id
+        # lista con todos los permisos disponibles (nombres)
+        todos_los_permisos = list(permisos_dict.keys())
         
         # Definir asignaciones de permisos por rol - ACTUALIZADAS según rutas reales
         rol_permisos_config = {
@@ -81,7 +83,26 @@ def seed_rol_permisos():
                 "productos.listar", "productos.ver",
                 # Carrito (gestión de su propio carrito)
                 "cart_items.ver_usuario", "cart_items.ver", "cart_items.crear",
-                "cart_items.actualizar", "cart_items.eliminar", "cart_items.limpiar_carrito"
+                "cart_items.actualizar", "cart_items.eliminar", "cart_items.limpiar_carrito",
+                "eliminar_item_carrito", "ver_carrito", "modificar_carrito",
+                "incrementar_carrito", "decrementar_carrito"
+            ],
+            "comprador": [
+                # Alias para compatibilidad: 'comprador' es equivalente a 'cliente'
+                "usuarios.ver_perfil", "usuarios.actualizar", "usuarios.login",
+                "productos.listar", "productos.ver",
+                "cart_items.ver_usuario", "cart_items.ver", "cart_items.crear",
+                "cart_items.actualizar", "cart_items.eliminar", "cart_items.limpiar_carrito",
+                "eliminar_item_carrito", "ver_carrito", "modificar_carrito",
+                "incrementar_carrito", "decrementar_carrito"
+            ],
+            "vendedor": [
+                # === PERMISOS PARA VENDEDOR ===
+                # Usuarios (perfil propio)
+                "usuarios.ver_perfil", "usuarios.actualizar", "usuarios.login",
+                # Productos (gestión completa)
+                "productos.listar", "productos.crear", "productos.ver", 
+                "productos.actualizar", "productos.eliminar", "productos.subir"
             ]
         }
         
@@ -96,7 +117,11 @@ def seed_rol_permisos():
                 db.execute(delete_sql, {"rol_id": rol.rol_id})
                 
                 # Asignar nuevos permisos
-                permisos_rol = rol_permisos_config[rol_nombre]
+                # Si es administrador, asignar todos los permisos existentes para asegurar cobertura completa
+                if rol_nombre == 'administrador':
+                    permisos_rol = todos_los_permisos
+                else:
+                    permisos_rol = rol_permisos_config[rol_nombre]
                 
                 permisos_asignados = 0
                 for permiso_nombre in permisos_rol:

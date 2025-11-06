@@ -56,378 +56,151 @@ Backend en FastAPI para la tienda KickShopping.
 
 ## 🛒 Endpoints principales y ejemplos
 
-### 1. Crear producto
+```markdown
+# KickShopping (monorepo)
 
-**POST** `/cart/products`
+Este repositorio contiene el backend (FastAPI) y el frontend (Next.js/React) de la tienda KickShopping.
 
-Body (JSON):
-
-```json
-{
-   "nombre": "Zapatillas Nike Air",
-   "descripcion": "Zapatillas deportivas",
-   "precio": 120.0
-}
-```
-
-### 2. Agregar producto al carrito
-
-**POST** `/cart/{user_id}/add`
-Ejemplo: `/cart/usuario1/add`
-
-Body (JSON):
-
-```json
-{
-   "product_id": 1,
-   "cantidad": 2
-}
-```
-
-### 3. Ver carrito y total
-
-**GET** `/cart/{user_id}`
-Ejemplo: `/cart/usuario1`
-
-### 4. Remover producto del carrito
-
-**DELETE** `/cart/{user_id}/remove/{product_id}`
-Ejemplo: `/cart/usuario1/remove/1`
-
-### 5. Vaciar carrito
-
-**DELETE** `/cart/{user_id}/clear`
-Ejemplo: `/cart/usuario1/clear`
-=========
-
-# 👟 Kick Shopping - Backend API
-
-Sistema de gestión integral para tienda de Indumentari desarrollado con **FastAPI** y **SQLAlchemy**. Proporciona una API REST completa para administrar todos los aspectos operativos de una tienda de ropa deportiva con autenticación JWT y sistema de permisos granulares.
-
-## 🎯 Funcionalidad Principal
-
-**Kick Shopping Backend** es una API REST que permite gestionar:
-
-- **👥 Usuarios y Roles**: Sistema de autenticación JWT y autorización por permisos
-- **🔒 Permisos**: Control granular de acceso por ruta y método HTTP
-- **👟 Productos**: Catálogo de calzado deportivo y stock
-- **🛒 Carrito de Compras**: Gestión del carrito de usuarios
-- **🛡️ Seguridad**: Middleware de autenticación JWT con Bearer tokens
-
-## 🏗️ Arquitectura del Sistema
-
-```
-📁 Backend/
-├── 🚀 app.py                 # Aplicación principal FastAPI
-├── 📊 kickshopping.db       # Base de datos SQLite
-├── 📋 requirements.txt      # Dependencias Python
-├── 🔧 config/               # Configuración del sistema
-│   ├── basemodel.py         # Modelo base SQLAlchemy
-│   ├── cnx.py              # Conexión a base de datos
-│   └── associations.py     # Tablas intermedias
-├── 🛡️ middlewares/         # Middleware de seguridad
-│   └── auth.py             # Autenticación JWT
-├── 🌱 seeders/             # Datos iniciales (ver README interno)
-├── 📁 [módulos]/           # Módulos del sistema
-│   ├── model.py            # Modelo de datos SQLAlchemy
-│   ├── dto.py              # Data Transfer Objects
-│   ├── services.py         # Lógica de negocio
-│   └── routes.py           # Endpoints de la API
-└── 📖 docs/                # Documentación
-    ├── SECURITY_GUIDE.md   # Guía de seguridad y autenticación
-    └── README.md           # Este archivo
-```
-
-## 🚀 Inicio Rápido
-
-> 👋 **¿Primera vez?** Te recomendamos la [**Guía de Swagger UI**](./SWAGGER_GUIDE.md) para empezar rápidamente sin instalaciones adicionales.
-
-### Prerrequisitos
-
-- Python 3.8+
-- pip (gestor de paquetes Python)
-
-### Instalación
-
-1. **Clonar el repositorio**:
-
-   ```bash
-   git clone <url-repositorio>
-   cd backend
-   ```
-2. **Crear entorno virtual**:
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # venv\Scripts\activate  # Windows
-   ```
-3. **Instalar dependencias**:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. **Configurar variables de entorno**:
-
-   ```bash
-   cp .env.example .env
-   # Editar .env con tus configuraciones
-   ```
-5. **Cargar datos iniciales**:
-
-   ```bash
-   python ./seeders/seed_main.py
-   ```
-6. **Iniciar el servidor**:
-
-   ```bash
-   uvicorn app:app --reload --host 0.0.0.0 --port 5000
-   ```
-7. **Acceder a la documentación**:
-
-   - Swagger UI: [http://localhost:5000/docs](http://localhost:5000/docs)
-   - ReDoc: [http://localhost:5000/redoc](http://localhost:5000/redoc)
-
-## 📚 Módulos del Sistema
-
-| Módulo              | Descripción                          | Endpoints Principales                                                           |
-| -------------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
-| **usuarios**   | Gestión de usuarios y autenticación | `GET /usuarios`, `POST /usuarios`, `POST /usuarios/login`                 |
-| **roles**      | Administración de roles del sistema  | `GET /roles`, `POST /roles`, `PATCH /roles/{id}`                          |
-| **permisos**   | Sistema de permisos granulares        | `GET /permisos`, `POST /permisos`, `POST /permisos/assign`                |
-| **productos**  | Catálogo de calzado deportivo        | `GET /productos`, `POST /productos`, `PATCH /productos/{id}`              |
-| **cart_items** | Gestión del carrito de compras       | `GET /cart_items/user/{id}`, `POST /cart_items`, `PATCH /cart_items/{id}` |
-
-## 🔐 Seguridad y Autenticación
-
-El sistema incluye un **middleware de autenticación JWT** completo con:
-
-- ✅ Encriptación de contraseñas (bcrypt)
-- ✅ Tokens JWT con expiración configurable (30 minutos por defecto)
-- ✅ Sistema de permisos por rol, ruta y método HTTP
-- ✅ Rutas públicas configurables (login, registro)
-- ✅ Verificación automática de permisos
-- ✅ Bearer token authentication con Swagger UI integrado
-
-### 🚀 Cómo Autenticarse
-
-#### **Opción 1: Usando Swagger UI** (Recomendado para desarrollo)
-
-1. **Abrir Swagger**: [http://localhost:5000/docs](http://localhost:5000/docs)
-2. **Hacer login**:
-
-   - Buscar el endpoint `POST /usuarios/login`
-   - Click en "Try it out"
-   - Usar credenciales de prueba:
-     ```json
-     {
-       "username": "admin",
-       "password": "admin123"
-     }
-     ```
-   - Ejecutar y copiar el `token` de la respuesta
-3. **Configurar autenticación**:
-
-   - Click en el botón **"Authorize"** 🔒 (esquina superior derecha)
-   - Pegar el token en el campo de valor
-   - Click en "Authorize" y luego "Close"
-4. **¡Listo!** Ahora puedes usar todos los endpoints protegidos
-
-#### **Opción 2: Usando Postman**
-
-1. **Login** - `POST http://localhost:5000/usuarios/login`
-
-   ```json
-   {
-     "username": "admin", 
-     "password": "admin123"
-   }
-   ```
-2. **Copiar token** de la respuesta
-3. **Configurar Authorization**:
-
-   - Type: **Bearer Token**
-   - Token: `<tu-token-aqui>`
-
-### 🔑 Respuesta de Login
-
-El endpoint de login retorna:
-
-```json
-{
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-  "user_id": 1,
-  "username": "admin"
-}
-```
-
-### 📚 Guías de Uso Disponibles
-
-- **🚀 [Guía de Swagger UI](./SWAGGER_GUIDE.md)** - Cómo usar la documentación interactiva
-- **📮 [Guía de Postman](./POSTMAN_GUIDE.md)** - Configuración y uso con Postman
-- **📋 [Referencia de API](./API_REFERENCE.md)** - Endpoints completos con ejemplos
-- **🔒 [Guía de Seguridad](./SECURITY_GUIDE.md)** - Detalles técnicos de autenticación
-
-## 🌱 Datos Iniciales (Seeders)
-
-El sistema incluye seeders modulares para cargar datos de prueba:
-
-- **Roles**: Administrador, Gerente, Empleado, Cliente
-- **Usuarios**: Cuentas de prueba con contraseñas encriptadas
-- **Permisos**: CRUD completo para todos los módulos
-- **Productos**: Datos de ejemplo de calzado deportivo
-
-**📖 Para información sobre seeders, consulta: [`./seeders/README.md`](./seeders/README.md)**
-
-## 🛠️ Tecnologías Utilizadas
-
-- **[FastAPI](https://fastapi.tiangolo.com/)**: Framework web moderno y rápido
-- **[SQLAlchemy](https://www.sqlalchemy.org/)**: ORM para Python
-- **[Pydantic](https://pydantic-docs.helpmanual.io/)**: Validación de datos
-- **[JWT](https://jwt.io/)**: Autenticación con tokens
-- **[bcrypt](https://pypi.org/project/bcrypt/)**: Encriptación de contraseñas
-- **[SQLite](https://www.sqlite.org/)**: Base de datos ligera
-- **[python-dotenv](https://pypi.org/project/python-dotenv/)**: Gestión de variables de entorno
-
-## 🔧 Configuración
-
-### Variables de Entorno (.env)
-
-```env
-# Seguridad JWT
-SECRET_KEY=tu_clave_secreta_muy_segura_aqui
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Base de datos (opcional para SQLite)
-DATABASE_URL=sqlite:///./kickshopping.db
-```
-
-### Estructura de Base de Datos
-
-La base de datos incluye las siguientes tablas principales:
-
-- `usuarios` - Información de usuarios del sistema
-- `roles` - Roles disponibles (Administrador, Gerente, Empleado, Cliente)
-- `permisos` - Permisos granulares por ruta y método
-- `rol_permiso` - Tabla intermedia rol-permiso (many-to-many)
-- `productos` - Catálogo de calzado deportivo
-- `cart_items` - Elementos del carrito de compras
-
-## 🧪 Testing y Desarrollo
-
-### Usuarios de Prueba (después de ejecutar seeders)
-
-| Usuario    | Contraseña | Rol           | Descripción               |
-| ---------- | ----------- | ------------- | -------------------------- |
-| admin      | admin123    | Administrador | Acceso completo al sistema |
-| gerente01  | gerente123  | Gerente       | Gestión y supervisión    |
-| empleado01 | empleado123 | Empleado      | Acceso operativo básico   |
-
-### Comandos Útiles
-
-```bash
-# Ejecutar seeders completos
-python ./seeders/seed_main.py
-
-# Ejecutar seeder específico
-python ./seeders/seed_roles.py
-
-# Iniciar con recarga automática
-uvicorn app:app --reload --host 0.0.0.0 --port 5000
-
-# Ver documentación
-curl http://localhost:5000/docs
-```
-
-### Características Técnicas
-
-- ✅ **Modularidad** - Cada entidad tiene su propio módulo (model, dto, service, routes)
-- ✅ **Seguridad JWT** - Tokens con expiración y roles/permisos granulares
-- ✅ **Middleware personalizado** - Autenticación automática en rutas protegidas
-- ✅ **Seeders organizados** - Datos de prueba modulares y reutilizables
-- ✅ **Documentación automática** - Swagger UI y ReDoc incluidos
-- ✅ **Validaciones** - DTOs con Pydantic
-- ✅ **Manejo de errores** - Responses HTTP consistentes
-
-## 🤝 Contribución
-
-Para contribuir al proyecto:
-
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -am 'Agrega nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto es desarrollado para fines educativos como parte del proyecto **Kick Shopping**.
+Este README describe cómo levantar ambos servicios en desarrollo, la estructura principal y notas útiles para desarrollar y depurar (autenticación, subida de imágenes, categorías, etc.).
 
 ---
 
-**🚀 ¡Tu API REST está lista para producción con seguridad empresarial!**
+## Estructura del repositorio (resumen)
 
-# KickShopping Backend
+- `backend-kikshopping/` — Backend en FastAPI (Python + SQLAlchemy).
+- `frontend-kikshopping/` — Frontend en Next.js (React + TypeScript).
+- `nombre_del_entorno/` — (opcional) entorno virtual local mostrado en el workspace.
 
-## Descripción
+Cada subcarpeta contiene su propio README y comandos de inicio. A continuación se explica cómo trabajar con ambos.
 
-Backend desarrollado con FastAPI, SQLAlchemy y SQLite para la gestión de usuarios, productos, roles, permisos y autenticación JWT.
+---
 
-## Requisitos
+## Backend — `backend-kikshopping`
 
-- Python 3.10 o superior
-- pip
+Descripción rápida: API REST en FastAPI que expone endpoints para usuarios, roles/permisos, productos y carrito. Soporta autenticación JWT (access + refresh) y cuenta con seeders para datos de prueba.
 
-## Instalación
+Rutas clave (resumen):
 
-1. Clona el repositorio y navega a la carpeta `Backend-BackendBase`.
-2. Instala las dependencias:
-   ```powershell
-   pip install -r requirements.txt
-   ```
+- `POST /usuarios/login` — Login y obtención de token (access & refresh).
+- `GET /usuarios/me` — Obtener perfil del usuario.
+- `GET /productos` — Listar productos.
+- `GET /productos/{id}` — Detalle de producto.
+- `POST /productos/upload` — Subir imagen y crear producto (multipart/form-data).
+- `POST /productos/{product_id}/imagen` — Actualizar la imagen de un producto (requiere rol admin).
+- `PATCH /productos/{product_id}` — Actualizar campos del producto (requiere admin).
+- `GET /categoria/{category}` — Listar productos por categoría.
+- `POST/GET/PATCH /cart_items` — Endpoints de carrito.
 
-## Configuración
+Notas importantes del backend:
 
-- Archivo `.env`:
-  ```env
-  ENVIROMENT=dev
-  STRCNX=sqlite:///./kidkshopping.db
-  SECRET_KEY=un_clave_secreta_segura
-  ALGORITHM=HS256
-  ACCESS_TOKEN_EXPIRE_MINUTES=30
-  ```
-- La base de datos se crea automáticamente como `kidkshopping.db` en la carpeta del backend.
+- La subida de imágenes guarda el fichero en `static/uploads/` y devuelve `image_url` del tipo `/static/uploads/<filename>`.
+- Cuando se actualiza la imagen de un producto, el backend ahora intenta eliminar el archivo anterior del directorio `static/uploads/` para evitar archivos huérfanos (siempre de forma segura y no bloqueante).
+- Las rutas de creación/edición de productos y la subida de imágenes usan la dependencia `verify_admin` y por tanto requieren un token válido con permisos de administrador.
 
-## Ejecución
+Instalación y ejecución (Windows / PowerShell):
 
-1. Inicia el servidor:
-   ```powershell
-   uvicorn main:app --host 127.0.0.1 --port 8000
-   ```
-2. Accede a la documentación interactiva en [http://localhost:8000/docs](http://localhost:8000/docs)
+```powershell
+# entrar al backend
+cd backend-kikshopping
 
-## Endpoints principales
+# crear/activar entorno virtual (si no lo tienes)
+python -m venv .venv
+& .venv\Scripts\Activate.ps1
 
-- `/usuarios` CRUD de usuarios
-- `/productos` CRUD de productos
-- `/roles` CRUD de roles
-- `/permisos` CRUD de permisos
-- `/usuarios/login` Login y obtención de token JWT
-- `/usuarios/me` Perfil del usuario autenticado
+# instalar dependencias
+pip install -r requirements.txt
 
-## Autenticación
+# ejecutar migraciones (si usas alembic)
+alembic upgrade head
 
-- Usa JWT. El token se obtiene en `/usuarios/login` y se envía en el header `Authorization: Bearer <token>`.
+# ejecutar seeders (opcional)
+python ./seeders/seed_main.py
 
-## Seeders
+# iniciar servidor en desarrollo
+uvicorn config.app:app --reload --host 0.0.0.0 --port 8000
 
-- Para poblar la base de datos con datos de ejemplo, ejecuta los scripts en la carpeta `seeders`:
-  ```powershell
-  python seeders/seed_main.py
-  ```
+# abrir docs: http://localhost:8000/docs
+```
 
-## Notas
+Logs y debugging:
 
-- Si necesitas borrar todos los usuarios, puedes usar el endpoint DELETE `/usuarios/todos`.
-- Para eliminar la tabla de usuarios completamente, usa DELETE `/usuarios/drop-table` (requiere token)
+- Revisa la consola donde corre `uvicorn` para ver errores del servidor.
+- Si obtienes errores 401/403 en subida de imagen, revisa que el usuario tenga rol de administrador (usar `/usuarios/login` para obtener token y probar en Swagger o Postman).
+
+---
+
+## Frontend — `frontend-kikshopping`
+
+Descripción rápida: aplicación Next.js que consume la API del backend. Contiene páginas para listar productos, ver detalles, publicar y editar productos, y un carrito.
+
+Puntos relevantes implementados en este repo:
+
+- Páginas con formulario de edición y creación de producto:
+  - `app/editar-producto/page.tsx` — Editar producto: permite cambiar imagen, título, precio, descripción, categoría y descuento. Ahora usa `authFetch` para subir la imagen y el PATCH (manejo de refresh de token).
+  - `app/publicar-producto/page.tsx` — Publicar nuevo producto: incluye subida de imagen (FormData), descuento, descripción y selección de sección/categoría.
+- Client-side image processing:
+  - Ambas páginas usan redimensionado en cliente (canvas) para ajustar imágenes grandes y mantener transparencia en PNG cuando es posible.
+  - En edición, si la subida inicial falla con 403 se reintenta automáticamente convirtiendo la imagen a JPEG (fallback) para mejorar compatibilidad con ciertos backends.
+- Autenticación y tokens:
+  - El token se guarda en `localStorage` bajo la clave `tokenkick` y hay un `authFetch` en `lib/api.ts` que maneja refresh automático mediante el endpoint `/usuarios/refresh`.
+- Menú y categorías:
+  - El menú principal se encuentra en `app/components/Header.tsx`. Se añadió la categoría `buzos-mujer` al menú para mantener consistencia.
+
+Instalación y ejecución (Windows / PowerShell):
+
+```powershell
+cd frontend-kikshopping
+# instalar dependencias (usa npm o pnpm segun prefieras)
+npm install
+
+# iniciar el servidor de desarrollo
+npm run dev
+
+# por defecto Next escucha en http://localhost:3000
+```
+
+Notas de configuración:
+
+- Asegúrate de que la variable `NEXT_PUBLIC_API_URL` apunte al backend (ej: `http://localhost:8000`). Puedes definirla en `.env.local` en la carpeta del frontend:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+---
+
+## Flujos comunes y debugging (resumen rápido)
+
+- Problema: 403 al subir imagen desde la UI de editar producto
+  - Causas comunes: token no válido / usuario sin rol admin; backend valida tipo de archivo; CORS
+  - Qué hice en el repo: el frontend ahora usa `authFetch` (intenta refresh de token) y reintenta con conversión a JPEG si recibe 403; el backend intenta eliminar imagen antigua tras actualizar la ruta.
+
+- Si el error persiste:
+  1. Abre las devtools del navegador y revisa la petición POST a `/productos/{id}/imagen` — mira `Request Headers` y `Response body`.
+  2. Revisa los logs del servidor (uvicorn) para ver la traza en backend.
+  3. Verifica que el usuario con el que estás logueado tiene rol admin (usar `/usuarios/login` y comprobar `user_type` en el token o en `localStorage`).
+
+---
+
+## Comandos útiles
+
+- Backend (desde `backend-kikshopping`):
+  - Crear/activar venv, instalar dependencias, correr `uvicorn` y migraciones (ver arriba).
+
+- Frontend (desde `frontend-kikshopping`):
+  - `npm install`
+  - `npm run dev`
+
+---
+
+## Desarrollo y contribuciones
+
+- El proyecto está organizado por módulos (cada carpeta con sus modelos, DTOs, servicios y rutas) para facilitar la extensión y pruebas unitarias.
+- Para contribuir: crea una rama por feature, añade pruebas cuando corresponda y abre PR describiendo el cambio.
+
+---
+
+Si quieres que deje este README más específico (por ejemplo, añadir ejemplos de payloads exactos para upload, o instrucciones para Docker), dime qué prefieres y lo actualizo.
+
+``` 
+- ✅ Tokens JWT con expiración configurable (30 minutos por defecto)

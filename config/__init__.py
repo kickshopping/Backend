@@ -18,6 +18,17 @@ ENVIROMENT = os.getenv('ENVIROMENT', 'prod')
 # Preferir si STRCNX ya está definida (útil en dev)
 STRCNX_ENV = os.getenv('STRCNX')
 STRCNX_QA = os.getenv('STRCNXQA')
+# Seguridad / JWT
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALGORITHM = os.getenv('ALGORITHM', 'HS256')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '30'))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv('REFRESH_TOKEN_EXPIRE_DAYS', '30'))
+
+# Asegurarnos de que SECRET_KEY esté definida (usar valor por defecto en desarrollo)
+if not SECRET_KEY:
+    # No bloquear la importación en entornos locales; usar una clave por defecto y avisar
+    SECRET_KEY = 'dev-secret-change-me'
+    print("[config] WARNING: SECRET_KEY no está definida en .env — usando clave por defecto de desarrollo")
 
 # Preferencia local: si existe kidkshopping.db en el proyecto, usarlo por defecto
 from pathlib import Path
@@ -45,20 +56,27 @@ else:
                 db_name = f"{db_name}.db"
             STRCNX = f'sqlite:///{db_name}'
     else:
-        # Construir cadena tipo dialect+driver://user:pass@host:port/db
-        # Intentar no incluir credenciales vacías
-        user = USERDB or ''
-        pwd = PASSWORD or ''
-        host = HOST or 'localhost'
-        port = PORT or ''
-        db = DATABASE or ''
-        # Forma base
-        if user:
-            auth = f"{user}:{pwd}@"
+        # Si no se indicó ENGINE, preferir fallback sqlite local en vez de crear
+        # una URL inválida como 'None://...'. Esto evita que SQLAlchemy intente
+        # cargar un dialecto llamado 'None'.
+        if not ENGINE:
+            default_db = PROJECT_ROOT / 'kikshopping.db'
+            STRCNX = f"sqlite:///{default_db}"
         else:
-            auth = ''
-        hostport = f"{host}:{port}" if port else host
-        STRCNX = f"{ENGINE}://{auth}{hostport}/{db}"
+            # Construir cadena tipo dialect+driver://user:pass@host:port/db
+            # Intentar no incluir credenciales vacías
+            user = USERDB or ''
+            pwd = PASSWORD or ''
+            host = HOST or 'localhost'
+            port = PORT or ''
+            db = DATABASE or ''
+            # Forma base
+            if user:
+                auth = f"{user}:{pwd}@"
+            else:
+                auth = ''
+            hostport = f"{host}:{port}" if port else host
+            STRCNX = f"{ENGINE}://{auth}{hostport}/{db}"
 
 SQLALCHEMY_DATABASE_URI = STRCNX
 
@@ -71,3 +89,10 @@ try:
 except Exception:
     # No bloquear si hay problemas con filesystem; dejar STRCNX tal como quedó
     pass
+
+# Fallback default si STRCNX no fue correctamente configurada
+if 'STRCNX' not in globals() or not STRCNX:
+    default_db = PROJECT_ROOT / 'kikshopping.db'
+    STRCNX = f"sqlite:///{default_db}"
+    SQLALCHEMY_DATABASE_URI = STRCNX
+    print(f"[config] INFO: STRCNX no configurado, usando DB por defecto: {default_db}")

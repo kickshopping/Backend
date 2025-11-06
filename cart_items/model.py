@@ -11,5 +11,5 @@ class CartItem(Base):
     quantity = Column(Integer, default=1)
     
     # Relaciones
-    user = relationship("Usuario")
-    product = relationship("Product")
+    user = relationship("Usuario", lazy="joined")
+    product = relationship("Product", back_populates="cart_items", lazy="joined")

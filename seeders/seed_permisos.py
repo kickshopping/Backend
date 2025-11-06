@@ -119,6 +119,12 @@ def seed_permisos():
                 "permiso_descripcion": "Crear nuevos productos"
             },
             {
+                "permiso_nombre": "productos.subir",
+                "permiso_ruta": "/productos/upload",
+                "permiso_metodo": "POST",
+                "permiso_descripcion": "Subir imágenes de productos"
+            },
+            {
                 "permiso_nombre": "productos.ver",
                 "permiso_ruta": "/productos/{id}",
                 "permiso_metodo": "GET",

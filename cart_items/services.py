@@ -33,9 +33,30 @@ def get_cart_items_by_user(user_id: int):
             raise ValueError("ID de usuario inválido")
 
         db = SessionLocal()
-        cart_items = db.query(CartItem).filter(CartItem.user_id == user_id).all()
-        logger.info(f"Se obtuvieron {len(cart_items)} elementos del carrito para el usuario {user_id}")
-        return cart_items
+        # Usar joinedload para cargar los productos y usuarios eficientemente
+        cart_items = (
+            db.query(CartItem)
+            .options(joinedload(CartItem.product))  # Cargar productos en una sola consulta
+            .options(joinedload(CartItem.user))     # Cargar usuarios en una sola consulta
+            .filter(CartItem.user_id == user_id)
+            .all()
+        )
+        
+        # Verificar que todos los items tengan sus productos asociados
+        valid_items = []
+        for item in cart_items:
+            if item.product:
+                valid_items.append(item)
+            else:
+                logger.warning(f"Item de carrito {item.id} sin producto asociado, eliminando...")
+                db.delete(item)
+        
+        if len(valid_items) != len(cart_items):
+            db.commit()
+            logger.info(f"Se eliminaron {len(cart_items) - len(valid_items)} items inválidos del carrito")
+        
+        logger.info(f"Se obtuvieron {len(valid_items)} elementos válidos del carrito para el usuario {user_id}")
+        return valid_items
     except ValueError:
         raise
     except SQLAlchemyError as e:
@@ -79,10 +100,16 @@ def create_cart_item(cart_item_data: CartItemCreate):
         db = SessionLocal()
 
         # Verificar si ya existe un item del mismo producto para el mismo usuario
-        existing_item = db.query(CartItem).filter(
-            CartItem.user_id == cart_item_data.user_id,
-            CartItem.product_id == cart_item_data.product_id
-        ).first()
+        existing_item = (
+            db.query(CartItem)
+            .options(joinedload(CartItem.product))
+            .options(joinedload(CartItem.user))
+            .filter(
+                CartItem.user_id == cart_item_data.user_id,
+                CartItem.product_id == cart_item_data.product_id
+            )
+            .first()
+        )
 
         if existing_item:
             # Si ya existe, actualizar la cantidad
@@ -168,6 +195,54 @@ def update_cart_item(cart_item_id: int, update_data: CartItemUpdate):
             db.close()
 
 
+def update_cart_item_quantity(cart_item_id: int, increment: bool = True):
+    """Incrementar o decrementar la cantidad de un elemento del carrito"""
+    db = None
+    try:
+        db = SessionLocal()
+
+        if cart_item_id <= 0:
+            raise ValueError("ID de elemento del carrito inválido")
+
+        cart_item = db.query(CartItem).filter(CartItem.id == cart_item_id).first()
+
+        if not cart_item:
+            logger.warning(f"Intento de actualizar elemento del carrito inexistente: {cart_item_id}")
+            raise ValueError("Elemento del carrito no encontrado")
+
+        # Incrementar o decrementar la cantidad
+        if increment:
+            cart_item.quantity += 1
+        else:
+            if cart_item.quantity > 1:
+                cart_item.quantity -= 1
+            else:
+                # Si la cantidad llega a 0, eliminamos el item
+                db.delete(cart_item)
+                db.commit()
+                logger.info(f"Elemento del carrito {cart_item_id} eliminado por cantidad 0")
+                return None
+
+        db.commit()
+        db.refresh(cart_item)
+
+        logger.info(f"Cantidad del elemento {cart_item_id} actualizada a {cart_item.quantity}")
+        return cart_item
+
+    except ValueError:
+        if db:
+            db.rollback()
+        raise
+    except SQLAlchemyError as e:
+        if db:
+            db.rollback()
+        logger.error(f"Error de base de datos al actualizar cantidad del elemento {cart_item_id}: {str(e)}")
+        raise SQLAlchemyError("Error al acceder a la base de datos")
+    finally:
+        if db:
+            db.close()
+
+
 def delete_cart_item(cart_item_id: int):
     """Eliminar un elemento del carrito"""
     db = None
@@ -179,7 +254,8 @@ def delete_cart_item(cart_item_id: int):
         cart_item = db.query(CartItem).filter(CartItem.id == cart_item_id).first()
 
         if not cart_item:
-            raise ValueError("Elemento del carrito no encontrado")
+            logger.warning(f"Intento de eliminar item {cart_item_id} no encontrado")
+            return False
 
         db.delete(cart_item)
         db.commit()

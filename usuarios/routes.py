@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from typing import List
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -18,7 +18,9 @@ from .services import (
 
 usuarios = APIRouter()
 
-# ...existing code...
+# Bearer scheme para el token JWT
+bearer_scheme = HTTPBearer()
+
 
 # Endpoint para eliminar la tabla de usuarios (debe ir después de definir 'usuarios')
 @usuarios.delete("/drop-table")
@@ -29,32 +31,11 @@ def eliminar_tabla_usuarios():
         return {"detail": "Tabla de usuarios eliminada"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-from fastapi import APIRouter, HTTPException, status, Depends
-from typing import List
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-from .dto import UsuarioCreate, UsuarioOut, UsuarioUpdate, LoginResponse, LoginRequest
-from .services import (
-    get_all_usuarios,
-    get_usuario_by_id,
-    create_usuario,
-    update_usuario,
-    delete_usuario,
-    login,
-    decode_token
-)
-
-usuarios = APIRouter()
-
-# Bearer scheme para el token JWT
-bearer_scheme = HTTPBearer()
 
 
 @usuarios.get("", response_model=List[UsuarioOut])
 def listar_usuarios():
     """Obtener todos los usuarios"""
-    print("Listando usuarios...********************************")
     try:
         users = get_all_usuarios()
         if not users:
@@ -68,13 +49,13 @@ def listar_usuarios():
 
 
 @usuarios.get("/me")
-def leer_perfil(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
+def leer_perfil(request: Request):
     """
     Devuelve los datos del usuario autenticado mediante el token JWT.
+    El token ya fue validado por el AuthMiddleware.
     """
-    token = credentials.credentials
-    payload = decode_token(token)
-    user_id = payload.get("user_id")
+    user = request.state.user
+    user_id = user.get("user_id")
     if not user_id:
         raise HTTPException(status_code=401, detail="Token inválido: falta user_id")
     try:
@@ -105,13 +86,13 @@ async def crear_usuario(request: Request):
         usu_usuario = body.get("email")
         usu_nombre_completo = f"{body.get('first_name','')} {body.get('last_name','')}".strip()
         usu_contrasenia = body.get("password")
-        usu_rol_id = 2  # Por defecto, rol usuario
+        tipo_usuario = body.get("user_type", "Comprador")  # Si no se especifica, por defecto es Comprador
         birthdate = body.get("birthdate")
         usuario_data = {
             "usu_usuario": usu_usuario,
             "usu_nombre_completo": usu_nombre_completo,
             "usu_contrasenia": usu_contrasenia,
-            "usu_rol_id": usu_rol_id,
+            "tipo_usuario": tipo_usuario,
             "birthdate": birthdate
         }
         from .dto import UsuarioCreate
@@ -163,10 +144,7 @@ def eliminar_usuario(usu_id: int):
 
 @usuarios.post("/login", response_model=LoginResponse)
 def login_usuario(login_data: LoginRequest):
-    """
-    Iniciar sesión con usuario y contraseña.
-    Devuelve un JWT junto con el user_id y username.
-    """
+    """Iniciar sesión con usuario y contraseña. Devuelve un JWT junto con el user_id y username."""
     return login(login_data.username, login_data.password)
 
 
@@ -198,35 +176,40 @@ def refresh_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sch
         if isinstance(user_obj, dict):
             user_type = user_obj.get('rol_nombre')
 
-        # Generar nuevos tokens; rotar refresh token para mayor seguridad
-        new_access = create_access_token({
-            'sub': payload.get('sub'),
-            'rol_id': payload.get('rol_id'),
-            'user_id': user_id
+        # Crear nuevo access token con el rol actual obtenido de la BD
+        token_data = {
+            "sub": payload.get('sub'),
+            "rol_id": user_obj.get('usu_rol_id') if isinstance(user_obj, dict) else getattr(user_obj, 'usu_rol_id', None),
+            "user_id": user_id,
+            "username": user_obj.get('usu_usuario') if isinstance(user_obj, dict) else getattr(user_obj, 'usu_usuario', None),
+            "user_type": user_type
+        }
+        access_token = create_access_token(token_data)
+
+        # Refresh token con los mismos datos más el tipo
+        refresh_token = create_refresh_token({
+            **token_data,
+            "type": "refresh"
         })
-        new_refresh = create_refresh_token({
-            'sub': payload.get('sub'),
-            'rol_id': payload.get('rol_id'),
-            'user_id': user_id,
-            'type': 'refresh'
-        })
+
         return {
-            'access_token': new_access,
-            'refresh_token': new_refresh,
-            'token_type': 'bearer',
-            'user_id': user_id,
-            'username': payload.get('sub'),
-            'user_type': user_type
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user_type": user_type,
+            "user_id": user_id,
+            "username": user_obj.get('usu_usuario')
         }
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Usuario no encontrado: {e}")
 
-    # Endpoint para borrar todos los usuarios
-    @usuarios.delete("/todos")
-    def borrar_todos_usuarios():
-        try:
-            from .services import delete_all_usuarios
-            delete_all_usuarios()
-            return {"detail": "Todos los usuarios han sido borrados"}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint para borrar todos los usuarios (top-level)
+@usuarios.delete("/todos")
+def borrar_todos_usuarios():
+    try:
+        from .services import delete_all_usuarios
+        delete_all_usuarios()
+        return {"detail": "Todos los usuarios han sido borrados"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -9,6 +9,7 @@ from sqlite3 import IntegrityError
 from config.cnx import SessionLocal, engine
 from config.basemodel import Base
 from usuarios.model import Usuario
+import permisos.model
 from roles.model import Rol
 from middlewares.auth import hash_password
 import logging
@@ -36,9 +37,8 @@ def seed_usuarios():
     try:
         # Obtener IDs de los roles
         rol_admin = db.query(Rol).filter(Rol.rol_nombre == "Administrador").first()
-        rol_gerente = db.query(Rol).filter(Rol.rol_nombre == "Gerente").first()
-        rol_empleado = db.query(Rol).filter(Rol.rol_nombre == "Empleado").first()
-        rol_cajero = db.query(Rol).filter(Rol.rol_nombre == "Cajero").first()
+        rol_vendedor = db.query(Rol).filter(Rol.rol_nombre == "Vendedor").first()
+        rol_comprador = db.query(Rol).filter(Rol.rol_nombre == "Comprador").first()
         
         if not rol_admin:
             print("⚠ El rol Administrador debe existir antes de crear usuarios")
@@ -48,28 +48,22 @@ def seed_usuarios():
         # Definir usuarios del sistema
         usuarios_data = [
             {
-                "usu_usuario": "admin",
+                "usu_usuario": "admin@gmail.com",
                 "usu_contrasenia": "admin123",
                 "usu_nombre_completo": "Administrador del Sistema",
                 "usu_rol_id": rol_admin.rol_id
             },
             {
-                "usu_usuario": "gerente01",
-                "usu_contrasenia": "gerente123",
-                "usu_nombre_completo": "María González Gerente",
-                "usu_rol_id": rol_gerente.rol_id if rol_gerente else rol_admin.rol_id
+                "usu_usuario": "vendedor@gmail.com",
+                "usu_contrasenia": "vendedor123",
+                "usu_nombre_completo": "Vendedor Principal",
+                "usu_rol_id": rol_vendedor.rol_id if rol_vendedor else rol_admin.rol_id
             },
             {
-                "usu_usuario": "empleado01",
-                "usu_contrasenia": "emp123",
-                "usu_nombre_completo": "Juan Pérez Empleado",
-                "usu_rol_id": rol_empleado.rol_id if rol_empleado else rol_admin.rol_id
-            },
-            {
-                "usu_usuario": "cajero01",
-                "usu_contrasenia": "cajero123",
-                "usu_nombre_completo": "Ana López Cajera",
-                "usu_rol_id": rol_cajero.rol_id if rol_cajero else rol_admin.rol_id
+                "usu_usuario": "comprador@gmail.com",
+                "usu_contrasenia": "comprador123",
+                "usu_nombre_completo": "Comprador Principal",
+                "usu_rol_id": rol_comprador.rol_id if rol_comprador else rol_admin.rol_id
             }
         ]
         
