@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form, Request, Depends
+import logging
 import os
 import uuid
 import shutil
@@ -13,10 +14,12 @@ from .services import (
     delete_product,
     get_products_by_category
 )
-from middlewares.admin_auth import verify_admin
+from middlewares.admin_auth import verify_admin, verify_authenticated_user
 from usuarios.model import Usuario
 
 products = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 @products.get('/categoria/{category}', response_model=List[ProductOut])
 def list_products_by_category(category: str):
@@ -165,9 +168,14 @@ def upload_product(
 async def update_product_image(
     product_id: int,
     file: UploadFile = File(...),
-    admin: Usuario = Depends(verify_admin)
+    user: Usuario = Depends(verify_authenticated_user)
 ):
     """Actualizar la imagen de un producto existente"""
+    # Log who is calling this endpoint (helps debug 403s)
+    try:
+        logger.info(f"update_product_image called by user={getattr(user,'usu_usuario',None)} id={getattr(user,'usu_id',None)} for product_id={product_id}")
+    except Exception:
+        logger.info(f"update_product_image called for product_id={product_id} (user info unavailable)")
     try:
         # Ensure uploads directory exists
         base_dir = os.path.join(os.getcwd(), 'static', 'uploads')

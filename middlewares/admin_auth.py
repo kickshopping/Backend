@@ -73,3 +73,53 @@ async def verify_admin(token: str = Depends(oauth2_scheme)):
         return user
     finally:
         db.close()
+
+
+async def verify_authenticated_user(token: str = Depends(oauth2_scheme)):
+    """Verificar que el token sea válido y devolver el usuario (sin requerir rol de admin).
+    Devuelve HTTP 401 si el token es inválido o el usuario no existe.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="No autorizado",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise credentials_exception
+
+    user_id = None
+    try:
+        sub = payload.get("sub")
+        if sub is not None:
+            try:
+                user_id = int(sub)
+            except Exception:
+                user_id = None
+
+        if user_id is None:
+            user_id = payload.get("user_id") or payload.get("userId")
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
+    except Exception:
+        user_id = None
+
+    db = SessionLocal()
+    try:
+        user = None
+        if user_id is not None:
+            user = db.query(Usuario).filter(Usuario.usu_id == user_id).first()
+
+        if not user:
+            username = payload.get('username') or payload.get('usu_usuario') or payload.get('email') or payload.get('sub')
+            if isinstance(username, str) and username:
+                user = db.query(Usuario).filter(Usuario.usu_usuario == username).first()
+
+        if not user:
+            raise credentials_exception
+
+        return user
+    finally:
+        db.close()
